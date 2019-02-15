@@ -30,9 +30,14 @@ stdenv.mkDerivation {
     export PATH=/nix/var/nix/profiles/default/bin:${nix}/bin:${pkgs.openssh}/bin:/usr/bin:/bin:/usr/sbin:/sbin
 
     action=switch
+    config=$(nix-instantiate --eval -E '<darwin-config>' 2> /dev/null || echo "$HOME/.nixpkgs/darwin-configuration.nix")
     while [ "$#" -gt 0 ]; do
         i="$1"; shift 1
         case "$i" in
+            --config)
+              config="''${1}"
+              shift
+              ;;
             --help)
                 echo "darwin-installer: [--help] [--check]"
                 exit
@@ -47,7 +52,6 @@ stdenv.mkDerivation {
     echo >&2 "Installing nix-darwin..."
     echo >&2
 
-    config=$(nix-instantiate --eval -E '<darwin-config>' 2> /dev/null || echo "$HOME/.nixpkgs/darwin-configuration.nix")
     if ! test -f "$config"; then
         echo "copying example configuration.nix" >&2
         mkdir -p "$HOME/.nixpkgs"
